@@ -1,0 +1,149 @@
+Configuration Management Tool
+IaaCode
+
+Inventory:-List of hosts
+Frank--->100 Machine
+         Each every machine and installing Jdk 8 
+		 Ansible-->Angentless
+
+Simple, agentless IT automation
+that anyone can use
+
+----------------------------Installation of Ansible---------------------------
+--Commands to install Ansible on Master node
+
+	yum install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+	yum install ansible
+
+--Configuration to setup SSH on Client and Master Machine
+  --Remove the comments from the ssh/sshd_config file which is to be overwritten
+	vi etc/ssh/sshd_config
+  -- After making the changes restart the sshd
+		systemctl restart sshd
+  --Generate the public key on Master machine which is to shared with clients
+	ssh-keygen
+  --following file will be created at id_rsa.pub which contains the value of public key
+     cd /root/.ssh
+	 cat id_rsa.pub
+  --Copy the content of id_rsa.pub	  file
+  --Goto Client Machine and got to /root/.ssh folder and append the master's public key to authorized_keys files
+
+--Add the hosts(IP addresses or  in hosts file on the master machine under /etc/ansible folder
+  add client hosts 
+
+
+--------------------Ansible Adhoc Commands---------------------------------
+
+--To find the documentation of the modules
+	ansible-doc -l | more
+	ansible-doc -s yum
+--To Run ping command for all hosts
+	ansible all -m ping
+--To Run ping command to specific slave 
+	ansible -i hosts <<slave>>  -m ping
+--To Run any command on the slave machine
+	ansible -i hosts <<slave>> -m shell -a 'ls /home'
+--Install A package on Client Machine
+
+--I have added below clients int hosts file 
+	172.31.21.201
+	172.31.19.90
+	172.31.31.119
+------------------yum Module---------------
+--Lets install apache server on 172.31.21.201 server if it is already installed then yum remove httpd
+--run the command in  /etc/ansible folder because hosts file is available there
+   ansible 172.31.21.201 -m yum -a "name=httpd state=present"
+--lets verify it on the slave machine (it should be available)
+   service httpd status
+------------------service module-------------
+--Now the service is present but it is not in started state on slave machine so lets Start the service on client using ansible on master machine
+   ansible 172.31.21.201 -m service -a "name=httpd state=started"
+   --Notice that State is changed=true
+--Check the status on client machine (it should be in active state)
+  service httpd status 
+--Lets start service httpd again on master machine  
+   ansible 172.31.21.201 -m service -a "name=httpd state=started"
+   --Notice that State is changed=false because it is already started
+--Please try the same commands with state=stopped,restarted
+
+--Repeat the steps to install nmap service
+
+--------------------Copy module-------------
+-- Create a file in master server and lets copy it to all or some of the slave servers
+   Step1 :-> Create a file in master machine (/tmp/testfile) 
+             touch /tmp/testingfile
+			 echo "test for ansible copy module"  > /tmp/testfile
+   Step2:-> check on 172.31.21.201 that there is no file /tmp/testingfile
+   Step3:-> run the following command on master machine
+             ansible 172.31.21.201 -m copy -a "src=/tmp/testfile dest=/tmp/testfile"   
+   Step4:-> check on the slave machine it should have the file in /tmp/testfile
+   
+   
+
+    	
+
+
+Ansible Playbooks
+An organised unit of scripts, Defines works for server configuration and written in YAML
+
+Playbooks have number of plays
+Play contains tasks
+Tasks calls core of custom modules
+Handlers get triggered from notify and executed in the end only once
+						Playbooks
+    ---------------------------------------------------------
+    |					|									|
+   Play	             Play								Play
+   
+   Tasks       Tasks         Tasks
+   
+   Module  Notify Handlers
+
+demo
+---
+- hosts: 172.31.15.149
+  name: play1
+  tasks:
+    - name: home dir
+      command: ls -l /home
+      register: output
+    - debug:
+        var: output.stdout
+    - name: execute date
+      command: date
+      register: result
+    - debug:
+        var: result.stdout
+
+- hosts: 172.31.27.6
+  name: play2
+  tasks:
+    - name: installing Apache
+      yum: name=httpd state=latest
+    - name: start apache service
+      service: name=httpd state=started
+
+
+ ansible-playbook -i hosts demo1.yaml
+ 
+ 
+ ---------------------Ansible Roles-----------------
+ Roles Simplifies to write the complex workbooks
+ Roles allows you to reuse the common configuration step between different types of steps.
+ Roles are flexible and easily modified.
+ 
+ --------------Structure of an Ansible roles consist of given components
+ Defaults:-Stores data about roles and default variables.
+ Files:-Store files which is to be pushed to the remote machine.
+ Handlers:- Tasks that get triggered from some action.
+ Meta :- Information about author, supported platforms and dependencies.
+ Tasks:-Contains main list of tasks to be executed by roles.
+ Templates:-Contains Templates which can be deployed via role.
+ Vars:- Stores variables with high priorty than default variables.
+ 
+ 
+ Goto roles folder and create following folders
+ defaults files handlers meta tasks templates tests vars
+
+chumbows@gmail.com
+Kamakshyajune@gmail.com 
