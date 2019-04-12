@@ -78,7 +78,101 @@ that anyone can use
              ansible 172.31.21.201 -m copy -a "src=/tmp/testfile dest=/tmp/testfile"   
    Step4:-> check on the slave machine it should have the file in /tmp/testfile
    
+ -----------------------------------------------------------------------------------------------------
+							Ansible-Playbook	YAML (Ain't Markup Language) .yaml or .yml
+------------------------------------------------------------------------------------------------------- 
+1. It is data serialization language designed to be directly writeable and readable by humans
+2. It is commonly used for configuration Management.
+3. Strictly speaking YAML is a superset of json with additional features like indentation or new line
+4. It is a case sensitive scripting language.
+
+Q:->What is key?
+Ans:-Key represents a variable or column for a value eg name: httpd  in this case name is the key and httpd is the value
+Q:-> what is Data Types?
+Ans:->Data Type represents the type of value we are storing in the key
+      eg x:25  # it is integer
+	     x:"Ansible" # it is string
+		 x:2.3 # "it is float
+		 x:true # it is false
+		 x:null # it is null
+Q:-What is Data Collection?
+Ans:-Generally when we represent the data it is key value pair which is called scalar representation of data.If we use multiple values or single key 
+     or multiple key value pair it is called Data collection.
+Q:-What are the different types of Data collection?
+Ans:- It is of 2 types
+       Sequence data collection:- it is like array in other programming language
+	       tasks:
+			 - name:
+			 - debug:
+		Map data collection:-it is equivalent to dictionary in python
+		   tasks:
+			 - name: home dir
+			 - debug: true
+		 Map data collection can have Sequence data collection
+			tasks:
+			 - name: home dir
+			 - debug:
+			     var: result.stdout
+
+Q:-What is Ansible Playbook?
+Ans:- Ansible Playbook book is a yaml script. It sends the commands to remote server in scripted way instead of using Ansible commands indviually
+      to configure remote server from command line.
+Q:- What is Ansible Playbook Structure?
+Ans:-Each playbook is an aggregation of one or more plays in it. Playbooks are structured using Plays. There can be more than one play inside a 
+     playbook.The function of a play is to map a set of instructions defined against a particular host.
+     YAML is a strict typed language; so, extra care needs to be taken while writing the YAML files. 
+	 There are different YAML editors but we will prefer to use a simple editor like notepad++. 
+	 Just open notepad++ and copy and paste the below yaml and change the language to YAML (Language → YAML).
+	 Egs
+	 Task:-Install a apache server on remote machine
+	 Play:-Consist of 1 or more tasks like install apache server and start the service
+	 Playbook:-Composed or 1 or more play
+
+----------Create a Playbook----------
+A YAML starts with --- (3 hyphens)
+
+Syntax
+   --- 
+   name: install and configure DB
+   hosts: testServer
    
+
+   vars: 
+      oracle_db_port_value : 1521
+   
+   tasks:
+   -name: Install the Oracle DB
+      yum: <code to install the DB>
+    
+   -name: Ensure the installed service is enabled and running
+   service:
+      name: <your service name>
+
+Q:-What are different YAML tags in playbook?
+Ans:-
+name
+This tag specifies the name of the Ansible play. As in what this playbook will be doing. Any logical name can be given to the playbook.
+
+hosts
+This tag specifies the lists of hosts or host group against which we want to run the task. The hosts field/tag is mandatory. It tells Ansible on which hosts to run the listed tasks. The tasks can be run on the same machine or on a remote machine. One can run the tasks on multiple machines and hence hosts tag can have a group of hosts’ entry as well.
+
+vars
+Vars tag lets you define the variables which you can use in your playbook. Usage is similar to variables in any programming language.
+
+tasks
+All playbooks should contain tasks or a list of tasks to be executed. Tasks are a list of actions one needs to perform. A tasks field contains the name of the task. This works as the help text for the user. It is not mandatory but proves useful in debugging the playbook. Each task internally links to a piece of code called a module. A module that should be executed, and arguments that are required for the module you want to execute.	  
+
+Q What are the basic steps YAML script?
+Step 1:- start with ---
+Step 2:- Target section list(hosts,user, etc)
+Step 3:- Variable list (optional)
+Step 4:- Task list
+           List all the modules that you run, in the order
+Step 5:- Save file with YAML		  
+     	  
+			
+	 
+
 
     	
 
