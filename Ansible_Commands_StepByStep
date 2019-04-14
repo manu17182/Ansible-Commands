@@ -93,7 +93,7 @@ Ans:->Data Type represents the type of value we are storing in the key
       eg x:25  # it is integer
 	     x:"Ansible" # it is string
 		 x:2.3 # "it is float
-		 x:true # it is false
+		 x:true # it is Boolean
 		 x:null # it is null
 Q:-What is Data Collection?
 Ans:-Generally when we represent the data it is key value pair which is called scalar representation of data.If we use multiple values or single key 
@@ -169,9 +169,70 @@ Step 3:- Variable list (optional)
 Step 4:- Task list
            List all the modules that you run, in the order
 Step 5:- Save file with YAML		  
-     	  
-			
+Assignment:-Run the following commands 
+     on host1 and host2 :- execute sh file(date.sh)
+     on host1 :- find files and folders of /etc 
+     on host2 :- run date command
+     on master:- find files and folders of /home	 
+
+--------------------Variables--------------------------
+Q: What do you mean by Creating valid variable names?
+Ans:Variable names should be letters, numbers, and underscores. Variables should always start with a letter.
+    Variable names should not be a reserved ansible keywords.
+	foo_port is a great variable. foo5 is fine too.
+	foo-port, foo port, foo.port and 12 are not valid variable names.	
+    
+	YAML also supports dictionaries which map keys to values. For instance:
+	foo:
+	  field1: one
+	  field2: two
+	You can then reference a specific field in the dictionary using either bracket notation or dot notation:
+
+	foo['field1']
+	foo.field1	
+Q: Give a simple example of variables in YAML script
+
+---
+- hosts: 172.31.21.201
+  vars:
+    cmd1: sh /home/date.sh
+  name: play1
+  tasks:
+    - name: check current dir
+      command: "{{ cmd1 }}"
+      register: output
+    - debug:
+        var: output.stdout
 	 
+#one more example
+---
+ - hosts: 172.31.21.201
+   vars:
+     myvars: "This is my content"
+   tasks:
+   - copy:
+      dest: /tmp/var_file.txt
+      content: "{{ myvars }}"
+   - name: opening the file
+     command: cat /tmp/var_file.txt
+     register: output
+   - debug:
+       var: output.stdout
+
+Q what is var_prompt
+Ans
+   var_prompt is used to read the value for a variable at execution time
+   
+   ---
+ - name: This play book for var_prompt
+   hosts: 172.31.21.201
+   vars_prompt:
+    name: var1
+    prompt: Enter the value
+   tasks:
+   - name: output
+     debug:
+      msg: "This is the value of var1= {{ var1 }}"
 
 
     	
