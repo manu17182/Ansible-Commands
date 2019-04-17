@@ -177,7 +177,7 @@ Assignment:-Run the following commands
 
 --------------------Variables--------------------------
 Q: What do you mean by Creating valid variable names?
-Ans:Variable names should be letters, numbers, and underscores. Variables should always start with a letter.
+Ans:Variable names should be letters, numbers, and underscores. Variables should always start with a letter.a1,a1_,file
     Variable names should not be a reserved ansible keywords.
 	foo_port is a great variable. foo5 is fine too.
 	foo-port, foo port, foo.port and 12 are not valid variable names.	
@@ -235,7 +235,114 @@ Ans
       msg: "This is the value of var1= {{ var1 }}"
 
 
-    	
+-----------------Conditional statement
+
+---
+ - hosts: 172.31.21.201
+   vars_prompt:
+     name: myvars
+     prompt: Enter the value
+   tasks:
+   - copy:
+      dest: /tmp/var_file.txt
+      content: "{{ myvars }}"
+     when: myvars == "test"
+   - name: opening the file
+     command: cat /tmp/var_file.txt
+     when: myvars == "test"
+     register: output
+   - debug:
+       var: output.stdout
+     when: myvars == "test"
+
+---
+ - hosts: 172.31.21.201
+   vars_prompt:
+     name: myvars
+     prompt: Enter the value
+   tasks:
+   - copy:
+      dest: /tmp/var_file.txt
+      content: "{{ myvars }}"
+     when: myvars == "test"
+   - name: opening the file
+     command: cat /tmp/var_file.txt
+     ignore_errors: True
+     register: output
+   - debug:
+       var: output.stdout
+     when: myvars == "test"
+
+---
+ - hosts: 172.31.21.201
+   vars_prompt:
+     name: myvars
+     prompt: Enter the value
+     name: bar
+   tasks:
+   - copy:
+      dest: /tmp/var_file.txt
+      content: "{{ myvars }}"
+     when: myvars == "test"
+   - name: opening the file
+     command: cat /tmp/var_file.txt
+     ignore_errors: True
+     register: output
+   - debug:
+       var: output.stdout
+     when: myvars == "test"
+   tasks:
+   - shell: echo "I've got  and am not afraid to use it!"
+     when: foo is undefined
+
+   - fail: msg="Bailing out. this play requires 'bar'"
+     when: bar is undefined
+	 
+----------------------------------------------Loops-----------------------
+
+Q:-What is loop in YAML?
+Ans:- It is the repeation of tasks
+
+example:-If you want to create 3 directories on host machine
+
+
+ - hosts: 172.31.21.201
+   tasks:
+   - name: Create a dir1
+     command: mkdir /tmp/dir1
+   -name: Create a dir2
+    command: mkdir /tmp/dir2
+   -name: Create dir3
+    command: mkdir /tmp/dir3
+
+Now lets create above tasks with Loops
+
+---
+ - hosts: 172.31.21.201
+   tasks:
+   - name: Create a dire
+     command: mkdir /tmp/"{{ item }}"
+     with_items:
+     - new_dir1
+     - new_dir2
+     - new_dir3
+
+----------Create users in host machine
+
+---
+ - hosts: 172.31.21.201
+   tasks:
+   - name: add several users
+     user:
+       name: "{{ item }}"
+       state: present
+       groups: "wheel"
+     with_items:
+     - testuser1
+     - testuser2
+
+
+	
 
 
 Ansible Playbooks
