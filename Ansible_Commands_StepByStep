@@ -386,6 +386,77 @@ demo
       service: name=httpd state=started
 
 
+
+----------------Lookup
+Q:How to read a file from Ansible and store in the varaible?
+Ans: We use lookup command which is used to read the data source from external file.
+
+Eg:-Read the content of test.csv file
+
+---
+ - hosts: all
+   vars:
+      contents: "{{ lookup('file', 'test.csv') }}"
+   tasks:
+      - debug: msg="the value of test.txt is {{ contents }}"
+-------------------Rolling updates
+Q:- How to define the batch size while executing the an action?
+Ans By default, Ansible will try to manage all of the machines referenced in a play in parallel. For a rolling update use case, 
+    you can define how many hosts Ansible should manage at a single time by using the serial keyword:
+	
+	---
+ - hosts: all
+   serial: 2
+   name: play1
+   tasks:
+     - name: This is the testing
+       command: ls /home
+In the above example, if we had 4 hosts in the group ‘webservers’, 2 would complete the play completely before moving on to the next 2 hosts:
+If the number of hosts does not divide equally into the number of passes, the final pass will contain the remainder.
+
+- name: test play
+  hosts: all
+  serial:
+  - 1
+  - 5
+  - 10
+  
+  In the above example, the first batch would contain a single host, the next would contain 5 hosts, and (if there are any hosts left), every following batch would contain 10 hosts until all available hosts are used.
+  
+  ------------------Maximum Failure
+  
+  - hosts: webservers
+    max_fail_percentage: 30
+    serial: 10
+In the above example, if more than 3 of the 10 servers in the group were to fail, the rest of the play would be aborted.
+
+--------------delegate_to
+
+---
+ - hosts: 172.31.21.201
+   tasks:
+   - name: create dir1
+     command: mkdir /tmp/"{{ item }}"
+	 delegate_to: 127.0.0.1
+     loop:
+     - new_dir11
+     - new_dir21
+     - new_dir31
+
+
+---
+ - hosts: 172.31.21.201
+   tasks:
+   - name: create dir1
+     local_action: command mkdir /tmp/"{{ item }}"
+     loop:
+     - new_dir11
+     - new_dir21
+     - new_dir31
+
+  
+
+
  ansible-playbook -i hosts demo1.yaml
  
  
