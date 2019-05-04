@@ -1,3 +1,4 @@
+kamalbeg@gmail.com
 Configuration Management Tool
 IaaCode
 
@@ -46,23 +47,23 @@ that anyone can use
 --Install A package on Client Machine
 
 --I have added below clients int hosts file 
-	172.31.21.201
+	172.31.27.53
 	172.31.19.90
 	172.31.31.119
 ------------------yum Module---------------
---Lets install apache server on 172.31.21.201 server if it is already installed then yum remove httpd
+--Lets install apache server on 172.31.27.53 server if it is already installed then yum remove httpd
 --run the command in  /etc/ansible folder because hosts file is available there
-   ansible 172.31.21.201 -m yum -a "name=httpd state=present"
+   ansible 172.31.27.53 -m yum -a "name=httpd state=present"
 --lets verify it on the slave machine (it should be available)
    service httpd status
 ------------------service module-------------
 --Now the service is present but it is not in started state on slave machine so lets Start the service on client using ansible on master machine
-   ansible 172.31.21.201 -m service -a "name=httpd state=started"
+   ansible 172.31.27.53 -m service -a "name=httpd state=started"
    --Notice that State is changed=true
 --Check the status on client machine (it should be in active state)
   service httpd status 
 --Lets start service httpd again on master machine  
-   ansible 172.31.21.201 -m service -a "name=httpd state=started"
+   ansible 172.31.27.53 -m service -a "name=httpd state=started"
    --Notice that State is changed=false because it is already started
 --Please try the same commands with state=stopped,restarted
 
@@ -73,9 +74,9 @@ that anyone can use
    Step1 :-> Create a file in master machine (/tmp/testfile) 
              touch /tmp/testingfile
 			 echo "test for ansible copy module"  > /tmp/testfile
-   Step2:-> check on 172.31.21.201 that there is no file /tmp/testingfile
+   Step2:-> check on 172.31.27.53 that there is no file /tmp/testingfile
    Step3:-> run the following command on master machine
-             ansible 172.31.21.201 -m copy -a "src=/tmp/testfile dest=/tmp/testfile"   
+             ansible 172.31.27.53 -m copy -a "src=/tmp/testfile dest=/tmp/testfile"   
    Step4:-> check on the slave machine it should have the file in /tmp/testfile
    
  -----------------------------------------------------------------------------------------------------
@@ -150,7 +151,7 @@ Syntax
 
 Q:-What are different YAML tags in playbook?
 Ans:-
-name
+name 
 This tag specifies the name of the Ansible play. As in what this playbook will be doing. Any logical name can be given to the playbook.
 
 hosts
@@ -193,7 +194,7 @@ Ans:Variable names should be letters, numbers, and underscores. Variables should
 Q: Give a simple example of variables in YAML script
 
 ---
-- hosts: 172.31.21.201
+- hosts: 172.31.27.53
   vars:
     cmd1: sh /home/date.sh
   name: play1
@@ -206,7 +207,7 @@ Q: Give a simple example of variables in YAML script
 	 
 #one more example
 ---
- - hosts: 172.31.21.201
+ - hosts: 172.31.27.53
    vars:
      myvars: "This is my content"
    tasks:
@@ -225,7 +226,7 @@ Ans
    
    ---
  - name: This play book for var_prompt
-   hosts: 172.31.21.201
+   hosts: 172.31.27.53
    vars_prompt:
     name: var1
     prompt: Enter the value
@@ -234,11 +235,44 @@ Ans
      debug:
       msg: "This is the value of var1= {{ var1 }}"
 
+#------------Create a file if it does not exist
+---
+ - hosts: 172.31.27.53
+   vars:
+    test: "true"
+   tasks:
+     - name: Command to execute
+       command: 'sudo touch /tmp/test.txt'
+       args:
+         creates: /tmp/test.txt
+#-----------------------------------------------
 
------------------Conditional statement
+#-----------------------remove the file if exist
+---
+ - hosts: 172.31.27.53
+   tasks:
+    - name: testing
+      command: 'touch /tmp/test'
+      args:
+       removes: /tmp/test
+#------------------------------------------------
+
+#-----------------Conditional statement
+---
+ - hosts: 172.31.27.53
+   vars:
+    test: "True"
+    cont: "Hi from ansible"
+   tasks:
+   - copy:
+      dest: /tmp/test1.txt
+      content: "{{ cont }}"
+     when: ansible_facts['os_family'] == 'CentOs'
+
+
 
 ---
- - hosts: 172.31.21.201
+ - hosts: 172.31.27.53
    vars_prompt:
      name: myvars
      prompt: Enter the value
@@ -256,7 +290,7 @@ Ans
      when: myvars == "test"
 
 ---
- - hosts: 172.31.21.201
+ - hosts: 172.31.27.53
    vars_prompt:
      name: myvars
      prompt: Enter the value
@@ -274,7 +308,7 @@ Ans
      when: myvars == "test"
 
 ---
- - hosts: 172.31.21.201
+ - hosts: 172.31.27.53
    vars_prompt:
      name: myvars
      prompt: Enter the value
@@ -297,7 +331,41 @@ Ans
 
    - fail: msg="Bailing out. this play requires 'bar'"
      when: bar is undefined
-	 
+
+#-------------------multiple condtion
+---
+ - hosts: 172.31.27.53
+   tasks:
+     - command: /tmp/test.sh
+       register: result
+       ignore_errors: True
+
+     - command: date
+       when: result is failed
+
+     - command: ls -l /home
+       when: result is succeeded
+
+     - command: ls -l /home/ec2-user
+       when: result is skipped
+
+
+
+---
+ - hosts: 172.31.27.53
+   vars:
+    var1: 1
+    var2: 2
+   tasks:
+    - name: This is for condition1
+      command: date
+      when: var1 == 1 or var2 ==2
+    - name: This is for condition2
+      command: date
+      when:
+       - var1 == 1
+       - var2 == 2
+
 ----------------------------------------------Loops-----------------------
 
 Q:-What is loop in YAML?
@@ -306,7 +374,7 @@ Ans:- It is the repeation of tasks
 example:-If you want to create 3 directories on host machine
 
 
- - hosts: 172.31.21.201
+ - hosts: 172.31.27.53
    tasks:
    - name: Create a dir1
      command: mkdir /tmp/dir1
@@ -318,7 +386,7 @@ example:-If you want to create 3 directories on host machine
 Now lets create above tasks with Loops
 
 ---
- - hosts: 172.31.21.201
+ - hosts: 172.31.27.53
    tasks:
    - name: Create a dire
      command: mkdir /tmp/"{{ item }}"
@@ -330,7 +398,7 @@ Now lets create above tasks with Loops
 ----------Create users in host machine
 
 ---
- - hosts: 172.31.21.201
+ - hosts: 172.31.27.53
    tasks:
    - name: add several users
      user:
@@ -433,7 +501,7 @@ In the above example, if more than 3 of the 10 servers in the group were to fail
 --------------delegate_to
 
 ---
- - hosts: 172.31.21.201
+ - hosts: 172.31.27.53
    tasks:
    - name: create dir1
      command: mkdir /tmp/"{{ item }}"
@@ -445,7 +513,7 @@ In the above example, if more than 3 of the 10 servers in the group were to fail
 
 
 ---
- - hosts: 172.31.21.201
+ - hosts: 172.31.27.53
    tasks:
    - name: create dir1
      local_action: command mkdir /tmp/"{{ item }}"
