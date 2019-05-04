@@ -235,16 +235,20 @@ Ans
      debug:
       msg: "This is the value of var1= {{ var1 }}"
 
-#------------Create a file if it does not exist
+#------------Run date command if /tmp/test.txt does not exist
 ---
  - hosts: 172.31.27.53
    vars:
-    test: "true"
+     test: "Testing"
    tasks:
-     - name: Command to execute
-       command: 'sudo touch /tmp/test.txt'
-       args:
-         creates: /tmp/test.txt
+    - name : Create file if not exist
+      command: date
+      register: output
+      args:
+       creates: /tmp/test.txt
+    - debug:
+       var: output.stdout
+
 #-----------------------------------------------
 
 #-----------------------remove the file if exist
@@ -258,6 +262,19 @@ Ans
 #------------------------------------------------
 
 #-----------------Conditional statement
+
+# Determine if a path exists and is a directory.  Note that we need to test
+# both that p.stat.isdir actually exists, and also that it's set to true. 
+---
+ - hosts: 172.31.27.53
+   tasks:
+    - stat:
+       path: /tmp/test
+      register: p
+    - debug:
+       msg: "Path exists and is a directory {{ p }} "
+      when: p.stat.isdir is defined and p.stat.isdir
+
 ---
  - hosts: 172.31.27.53
    vars:
@@ -526,6 +543,36 @@ In the above example, if more than 3 of the 10 servers in the group were to fail
 
 
  ansible-playbook -i hosts demo1.yaml
+ 
+ 
+ ---
+- name: play1
+  hosts:  172.31.27.53
+  tasks:
+     - stat:
+        path: /tmp/test
+       register: p
+     - debug:
+         msg: "Path exists and is a directory {{ p.stat.isdir }} "
+       when: p.stat.isdir is defined and p.stat.isdir
+     - name: " command is to be executed"
+       command: ls -l /home
+       when: p.stat.isdir == False
+- name: play2
+  hosts: 172.31.27.53
+  tasks:
+   - copy:
+      dest: /tmp/test3.txt
+      content: "Test"
+- name: play3
+  hosts: 172.31.27.53
+  tasks:
+    - name: read the file
+      command: cat /tmp/test3.txt
+      register: p
+    - name: create the directory
+      command: mkdir /tmp/Testing
+      when: p.stdout == "Test"
  
  
  ---------------------Ansible Roles-----------------
